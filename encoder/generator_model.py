@@ -30,7 +30,7 @@ class Generator:
         self.model_scale = int(2*(math.log(model_res,2)-1)) # For example, 1024 -> 18
 
         if tiled_dlatent:
-            self.initial_dlatents = np.zeros((self.batch_size, 512))
+            self.initial_dlatents = np.zeros((self.batch_size, 1, 512))
             model.components.synthesis.run(np.zeros((self.batch_size, self.model_scale, 512)),
                 randomize_noise=randomize_noise, minibatch_size=self.batch_size,
                 custom_inputs=[partial(create_variable_for_generator, batch_size=batch_size, tiled_dlatent=True),
@@ -97,11 +97,11 @@ class Generator:
 
     def set_dlatents(self, dlatents):
         if self.tiled_dlatent:
-            if (dlatents.shape != (self.batch_size, 512)) and (dlatents.shape[1] != 512):
-                dlatents = np.mean(dlatents, axis=1)
-            if (dlatents.shape != (self.batch_size, 512)):
-                dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], 512))])
-            assert (dlatents.shape == (self.batch_size, 512))
+            if (dlatents.shape != (self.batch_size, 1, 512)) and (dlatents.shape[1] != 512):
+                dlatents = np.mean(dlatents, axis=1, keepdims=True)
+            if (dlatents.shape != (self.batch_size, 1, 512)):
+                dlatents = np.vstack([dlatents, np.zeros((self.batch_size-dlatents.shape[0], 1, 512))])
+            assert (dlatents.shape == (self.batch_size, 1, 512))
         else:
             if (dlatents.shape[1] > self.model_scale):
                 dlatents = dlatents[:,:self.model_scale,:]
